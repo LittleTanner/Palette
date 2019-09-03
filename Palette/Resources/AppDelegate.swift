@@ -16,6 +16,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
+        // This creates the initial view controller (the arrow on the storyboard)
+        window = UIWindow()
+        window?.rootViewController = PaletteListViewController()
+        
         return true
     }
 
