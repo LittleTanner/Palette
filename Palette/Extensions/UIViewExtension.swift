@@ -39,3 +39,11 @@ extension UIView {
         }
     }
 }
+
+struct SpacingConstants {
+    static let verticalObjectBuffer: CGFloat = 8.0
+    static let outerHortizontalPadding: CGFloat = 24.0
+    static let outerVerticalPadding: CGFloat = 16.0
+    static let oneLineElementHeight: CGFloat = 24.0
+    static let twoLineElementHeight: CGFloat = 32.0
+}

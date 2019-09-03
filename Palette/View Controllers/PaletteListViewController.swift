@@ -11,6 +11,12 @@ import UIKit
 class PaletteListViewController: UIViewController {
 
     // MARK: - Properties
+    
+    var photos: [UnsplashPhoto] = []
+    
+    var buttons: [UIButton] {
+        return [randomButton, featuredButton, doubleRanbowButton]
+    }
 
     var safeArea: UILayoutGuide {
         return self.view.safeAreaLayoutGuide
@@ -25,8 +31,12 @@ class PaletteListViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         self.view.backgroundColor = .white
+        configureTableView()
+        activateButtons()
+        selectButton(featuredButton)
+        searchForCategory(.featured)
     }
     
     // MARK: - Helper Functions
@@ -59,10 +69,43 @@ class PaletteListViewController: UIViewController {
         tableView.dataSource = self
         
         // register our custom cell
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "colorCell")
+        tableView.register(PaletteTableViewCell.self, forCellReuseIdentifier: "colorCell")
         
         // do any editing to tableView properties
         tableView.allowsSelection = false
+    }
+    
+    func activateButtons() {
+        buttons.forEach({ $0.addTarget(self, action: #selector(searchButtonTapped(sender:)), for: .touchUpInside) })
+    }
+    
+    func searchForCategory(_ unsplashRoute: UnsplashRoute) {
+        UnsplashService.shared.fetchFromUnsplash(for: unsplashRoute) { (photos) in
+            DispatchQueue.main.async {
+                guard let photos = photos else { return }
+                self.photos = photos
+                self.tableView.reloadData()
+            }
+        }
+    }
+    
+    func selectButton(_ button: UIButton) {
+        buttons.forEach({ $0.setTitleColor(UIColor.lightGray, for: .normal) })
+        button.setTitleColor(UIColor(named: "devmountainBlue"), for: .normal)
+    }
+    
+    @objc func searchButtonTapped(sender: UIButton) {
+        selectButton(sender)
+        switch sender {
+        case featuredButton:
+            searchForCategory(.featured)
+        case randomButton:
+            searchForCategory(.random)
+        case doubleRanbowButton:
+            searchForCategory(.doubleRainbow)
+        default:
+            print("Route not found")
+        }
     }
     
     // MARK: - Views (Step 1 of programmic constraints: Define the view)
@@ -115,15 +158,6 @@ class PaletteListViewController: UIViewController {
         return tableView
     }()
 
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
 
 } // End of class
 
@@ -131,17 +165,25 @@ class PaletteListViewController: UIViewController {
 extension PaletteListViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 5
+        return photos.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "colorCell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "colorCell", for: indexPath) as? PaletteTableViewCell
     
+        let photo = photos[indexPath.row]
+//        cell.paletteImageView.backgroundColor = .red
+        cell?.unsplashPhoto = photo
         
-        cell.backgroundColor = .red
-        
-        return cell
+        return cell ?? UITableViewCell()
     }
     
-    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        let imageViewSpacing: CGFloat = (view.frame.width - (SpacingConstants.outerHortizontalPadding * 2))
+        let titleLabelSpacing: CGFloat = SpacingConstants.oneLineElementHeight
+        let colorPaletteViewSpacing: CGFloat = SpacingConstants.twoLineElementHeight
+        let verticalPadding: CGFloat = (3 * SpacingConstants.verticalObjectBuffer)
+        let outerVerticalPadding: CGFloat = (2 * SpacingConstants.outerVerticalPadding)
+        return imageViewSpacing + titleLabelSpacing + colorPaletteViewSpacing + verticalPadding + outerVerticalPadding
+    }
 }
